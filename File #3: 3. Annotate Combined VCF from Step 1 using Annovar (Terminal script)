@@ -1,0 +1,16 @@
+# Run ANNOVAR on VCF
+# on "annovar_input" generated in the File #1: 1. Load and Combine VCF Files (R script:
+
+cp /Users/konstantina/Desktop/Research_project/Genomics_for_life_vcf_files/Data/annovar_input.txt \
+/Users/konstantina/Desktop/Research_project/Genomics_for_life_vcf_files/Data/annovar_input.avinput
+
+todaysdate=$(date +%Y%m%d)
+
+input_file=/Users/konstantina/Desktop/Research_project/Genomics_for_life_vcf_files/Data/annovar_input.avinput
+output_file=/Users/konstantina/Desktop/Research_project/Genomics_for_life_vcf_files/Annovar_output/annovar_output_all_variants_$todaysdate
+mkdir $output_file
+
+/Users/konstantina/Desktop/Research_project/Annovar/annovar/table_annovar.pl $input_file /Users/konstantina/Desktop/Research_project/Annovar/annovar/humandb -buildver hg19 \
+-outfile $output_file -remove \
+ -protocol refGene,cosmic95_coding,nci60,icgc28,clinvar_20210123,dbnsfp31a_interpro,avsnp150,gnomad211_genome,ALL.sites.2015_08 \
+ -operation g,f,f,f,f,f,f,f,f -otherinfo -nastring . 
