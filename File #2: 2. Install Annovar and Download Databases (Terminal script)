@@ -1,0 +1,63 @@
+# Setup annovar
+# Annovar and Cosmic databases must be downloaded from the links below
+
+mkdir /Users/konstantina/Desktop/Research_project/Annovar/annovar
+cd /Users/konstantina/Desktop/Research_project/Annovar/
+
+#Then download annovar: https://www.openbioinformatics.org/annovar/annovar_download_form.php
+
+# The following file must be downloaded from the Annovar website
+tar -zxvf annovar.tar 
+
+cd /Users/konstantina/Desktop/Research_project/Annovar/annovar 
+
+#setup databases 
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar clinvar_20210123 humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp31a_interpro humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar avsnp150 humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar gnomad211_genome humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar nci60 humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar icgc28 humandb/
+./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug humandb/
+
+# other options (full databases available on the Annovar website)
+# ./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ljb26_all humandb/
+# ./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar exac03 humandb/
+# ./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ensGene humandb/
+# ./annotate_variation.pl -buildver hg19 -downdb -webfrom annovar knownGene humandb/
+
+# download COSMIC 95 (or newest Cosmic version) & prepare database 
+# DL links found here: https://cancer.sanger.ac.uk/cosmic/download
+myauth=$(echo "your username:your password" | base64)
+
+# download CosmicMutantExport
+exportlink=$(curl -H "Authorization: Basic $myauth" \
+exportlink=$(curl -H "Authorization: Basic $myauth" https://cancer.sanger.ac.uk/cosmic/file_download/GRCh38/cosmic/v95/CosmicMutantExport.tsv.gz)
+
+exportlink=$(echo $exportlink | sed 's/{"url"://g')
+exportlink=$(echo $exportlink | sed 's/}//g')
+exportlink=$(echo $exportlink | sed 's/"//g')
+
+curl $exportlink --output CosmicMutantExport.tsv.gz
+
+# download CosmicCodingMuts.vcf.gz
+codinglink=$(curl -H "Authorization: Basic $myauth" https://cancer.sanger.ac.uk/cosmic/file_download/GRCh38/cosmic/v95/VCF/CosmicCodingMuts.vcf.gz)
+
+codinglink=$(echo $codinglink | sed 's/{"url"://g')
+codinglink=$(echo $codinglink | sed 's/}//g')
+codinglink=$(echo $codinglink | sed 's/"//g')
+
+curl $codinglink --output CosmicCodingMuts.vcf.gz
+gunzip *.gz 
+
+# create the database from the files downloaded from COSMIC
+wget http://www.openbioinformatics.org/annovar/download/prepare_annovar_user.pl
+chmod 775 prepare_annovar_user.pl
+perl prepare_annovar_user.pl -dbtype cosmic CosmicMutantExport.tsv -vcf CosmicCodingMuts.vcf > hg19_cosmic95_coding.txt
+
+mv hg19_cosmic95* ./humandb
+
+rm CosmicMutantExport.tsv # remove to save disk space
+rm CosmicCodingMuts.vcf
